@@ -10,20 +10,23 @@ class CameraScreen extends Component {
   };
 
   _StopRecord = async () => {
-    this.setState({ recording: false }, () => {
-      const example = this.cam.stopRecording();
-      console.log('example', example);
+    this.setState({ recording: false }, async () => {
+      const example = await this.cam.stopRecording();
+      console.log(example)
     });
-    console.log(this.props);
-    const response = fetch('http://test.aeroexam.org/api/files/upload', {
+    let data = new FormData();
+    const { video } = this.state;
+    data.append({'file': this.state.video});
+    fetch('http://test.aeroexam.org/api/files/upload', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiIDAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMSIsIm5hbWUiOiJKb2huIERvZSIsImlhdCI6MTUxNjIzOTAyMn0.uZyBka_iTmXHomLYmXqq2FzKoKIOqwSQyNrIAbztk5E'
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.nHHXsHcibnpaxMgzqnf1UsNktOVmrEQEFg0OEuvkwb8'
       },
-      body: JSON.stringify({
-        file: video
-      })
+      body: data
+    }).then((response) => console.log(response.status))
+    .catch((err) => {
+      console.log(err);
     })
   };
 
@@ -31,7 +34,7 @@ class CameraScreen extends Component {
     if (this.cam) {
       this.setState({ recording: true }, async () => {
         const video = await this.cam.recordAsync();
-        this.setState({ video });
+        this.setState({video: video});
       });
     }
   };
@@ -47,7 +50,7 @@ class CameraScreen extends Component {
   };
 
   render() {
-    const { recording, video } = this.state;
+    const { recording } = this.state;
     return (
       <Camera
         ref={cam => (this.cam = cam)}
@@ -58,18 +61,6 @@ class CameraScreen extends Component {
           width: "100%"
         }}
       >
-        {video && (
-          <TouchableOpacity
-            onPress={this._saveVideo}
-            style={{
-              padding: 20,
-              width: "100%",
-              backgroundColor: "#fff"
-            }}
-          >
-            <Text style={{ textAlign: "center" }}>save</Text>
-          </TouchableOpacity>
-        )}
         <TouchableOpacity
           onPress={this.toogleRecord}
           style={{
